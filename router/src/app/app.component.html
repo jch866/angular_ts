@@ -1,0 +1,13 @@
+
+<!--  ./   /  子路由还是根路由 -->
+<a [routerLink]="['/']">主页</a>
+<!--<a [routerLink]="['/product']" [queryParams]="{id:1}">商品</a>-->
+<a [routerLink]="['/product',1]">商品</a>
+<button (click)="toProductDetail()">商品详情</button>
+
+<a [routerLink]="[{outlets:{primary:'home',aux:'chat'}}]">开始聊天</a>
+<a [routerLink]="[{outlets:{aux:null}}]">结束聊天</a>
+<router-outlet></router-outlet>
+<!--router-outlet类似插座-->
+<!--辅助路由-->
+<router-outlet name="aux"></router-outlet>
