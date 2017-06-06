@@ -13,11 +13,12 @@ import { ProductComponent } from './product/product.component';
 import { StarsComponent } from './stars/stars.component';
 import { ProductDetailComponent } from './product-detail/product-detail.component';
 import { HomeComponent } from './home/home.component';
+import {ProductService} from "./shared/product.service";
 
 const routeConfig:Routes = [
   {path:'',component:HomeComponent},
-  {path:'product/:prodTitle',component:ProductDetailComponent},
-]
+  {path:'product/:productId',component:ProductDetailComponent}
+];
 
 @NgModule({
   declarations: [ //declarations只能声明组件，指令，管道
@@ -29,7 +30,7 @@ const routeConfig:Routes = [
     HttpModule,
     RouterModule.forRoot(routeConfig)
   ],
-  providers: [],//模块中提供什么服务,只能声明服务
+  providers: [ProductService],//模块中提供什么服务,只能声明服务
   bootstrap: [AppComponent] //声明模块中主组件
 })
 export class AppModule { }

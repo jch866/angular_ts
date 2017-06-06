@@ -1,0 +1,320 @@
+---------------------------
+augular-cli.json;中
+"index": "index.html",//启动时加载的src下面的index.html页面
+"main": "main.ts",//启动时加载的src下面的main.ts脚本
+
+augular安装其它类库有三个步骤
+1.npm install jquery --save
+1.npm install bootstrap --save
+2.把库引到项目中去 修改augular-cli.json
+3.类型描述文件npm install @types/bootstrap --save-dev
+install @types/jquery --save-dev
+"styles": [
+        "styles.css",
+        "../node_modules/bootstrap/dist/css/bootstrap.min.css"
+      ],
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.js",
+        "../node_modules/bootstrap/dist/js/bootstrap.min.js"
+      ],
+
+生成新组件
+AppComponent,
+NavbarComponent,
+FooterComponent,
+SearchComponent,
+CarouselComponent,
+ProductComponent,
+StarsComponent
+ng g component navbar
+ng g component footer
+ng g component search
+ng g component carousel
+ng g service shared/product
+
+
+bootstrap 轮播组件，自动播放，点carousel-indicators切换功能实现？
+bootstrap 缩小窗口，组件自动隐藏的CLASS
+
+星级评论组件
+1如何写一个实、空星  class=glyphicon glyphicon-star glyphicon-star-empty
+2如何写五个星 *ngFor="let star of stars"
+[src]="imgUrl"
+[class.glyphicon-star-empty] = 'star'
+4传递商品组件星级数值传递到星级组件  @input 数组父传子
+如何根据商品星级决定星星是空还是实心 this.stars.push(i>this.rating)
+
+--------------------------- 路由详解
+
+路由 Routes  RouterOutLet Router
+Router.navigate()   Router.navigateByUrl() //控制器中用
+RouterLink   //a接连中用的   值是数组，数组里可以带参数
+ActivatedRoute
+子路由
+保护路由
+辅助路由
+spa 单页应用
+视图状态
+ng serve --port 3080
+<a [routerLink]="['/']">主页</a>
+<a [routerLink]="['/product']">商品</a>
+
+第一种 查询参数中传参
+/product?id=18&name=2   =>   ActivatedRoute.queryParams[id]
+/product?id=18&name=2   =>   ActivatedRoute.queryParams[name]
+第二种 配置路由路径中传参
+1修改path,2修改路由参数<a [routerLink]="['/product',1]">商品</a>
+3ActivatedRoute.params[id]
+{path:/product/?id}  => /product/2  => ActivatedRoute.params[id]
+
+参数快照 this.routerInfo.snapshot ，避免路由路由到自身否则用订阅
+参数订阅 this.routerInfo.params.subscribe((params:Params)=>this.productId=params['id'])
+
+第三种 配置路由data中传参
+{
+    path: '', //配置路径的时候不能加/
+    component:HomeComponent,
+    data:[{isProd:true}]
+  }
+=>   ActivatedRoute.data[0][isProd]
+
+重定向路由 用户访问一个特定的地址，将其重定向到另一个指定的地址
+www.aaa.com   => www.aaa.com/product
+www.aaa.com/x => www.aaa.com/y
+localhost:3080/home  => localhost:3080/
+
+router-outlet 可无限嵌套 形成父子关系，类似插座上再接插座
+
+路由信息在module层，组合本身不知道相关信息
+
+辅助路由  允许一个组件有多个插座
+1.在组件模板，除了主插座，声明一个name属性的插座
+<router-outlet></router-outlet> 主
+<router-outlet name='aux'></router-outlet> 辅
+配置
+{path: '', //配置路径的时候不能加/
+component:HomeComponent,
+outlet:'aux'}
+连接
+<a [routerLink]="['/product',outlets:{aux:'xxx'}]">商品</a>
+主路由会显示product组件，辅路由会显示xxx组件
+
+开发聊天组件
+思路1.在App组件模板上在定义一个插座，显示聊天面板
+2.单独开发一个聊天室组件，只显示在新定义的插座上
+3.通过路由参数控制插座是否显示聊天面板
+
+[routerLink]="[{outlets:{primary:'home',aux:'chat'}}]
+只要点击显示chat时，都会显示home组件  有个BUG，点HOME不显示CHAT
+
+路由守卫
+比如，只有当用户已经登录才能进入某个页面
+比如，表单只有填了必要的信息才能进入下一页面
+比如，用户未保存而试用离开当前路由
+
+{path: '',component:HomeComponent,outlet:'aux'，
+canActivate:[LoginGuard],
+    canDeactivate:[UnsavedGuard]}
+CanActivate处理导航到某路由的情况
+CanDeactivate处理比当前路由离开的情况
+
+LoginGuard.ts
+import {CanActivate} from '@Angular/router';
+export class LoginGuard implements CanActivate{
+  canActivate(){
+    const A = Math.random();
+    let logined:boolean = A < 0.5
+    if(!logined){
+      console.log(`unlogined ${A}`)
+    }else{
+      console.log(`logined ${A}`)
+    }
+    return logined;
+  }
+}
+
+UnsavedGuard.ts
+import {CanDeactivate} from '@Angular/router';
+import { ProductComponent } from '../product/product.component';
+
+export class UnsavedGuard implements CanDeactivate<ProductComponent>{
+  canDeactivate(component:ProductComponent){
+    return window.confirm('还没有保存确定要离开吗？')
+  }
+}
+
+1.import {LoginGuard } from './guard/login.guard';
+import {UnsavedGuard } from './guard/unsaved.guard';
+
+2.
+canActivate:[LoginGuard], //多个进入守卫，只要一个不行，就阻止
+canDeactivate:[UnsavedGuard] //多个离开守卫，只要一个不行，就阻止
+3.@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+  providers: [LoginGuard,UnsavedGuard]
+})
+
+Resolve在路由激活之前获取路由数据
+ Resolve针对HTTP请求数据未完成时的用户体验改进
+ 在数据没有返回时，显示的是一些插值表达式
+ 比如根据参数ID取文章或者商品详情 ，数据 没有返回前
+Resolve预先进入路由之前，去服务器取数据 ，把数据读好，预读数据，带数据进路由，
+否则进错误信息页，或者自定义跳转
+
+1ProductResolve.ts
+2ProductComponent
+this.routerInfo.data.subscribe((data:{product:Product})=>{
+      this.productId = data.product.id;
+      this.productName = data.product.name;
+    })
+
+3app-routing.module.ts
+import {ProductResolve} from "./guard/product.resolve";
+resolve:{
+      product:ProductResolve
+    }
+
+ providers: [LoginGuard,UnsavedGuard,ProductResolve]
+
+
+app-routing.module.ts  =>    product.resolve.ts => product.component.ts
+路由定义resolve，       通过resolve预取数据，   取数据展示
+this.routerInfo.data.subscribe((data:{product:Product})=>{
+      this.productId = data.product.id;
+      this.productName = data.product.name;
+    })
+
+----------------------------
+改造auction路由
+1，生成产品详情组件，展示图片和标题
+2，重构，把轮播和产品列表放到新的组件HOME里面
+3，配置路由，点商品详情组件时传递商品的标题参数点
+4，修改APP组件，根据路由显示 HOME组件或者商品详情组件
+5，修改商品列表组件，给商品标题添加带routelink指令的连接，导航到商品详情
+----------------------------
+依赖注入 Dependency Injection
+1.什么是依赖注入模式及好处
+2.ng实现依赖注入实现注入器和提供器
+3.注入器的层级
+
+var product = new Product();
+createShipment(product)
+createShipment 参数要一个实例  但它不会自己实例化
+
+var product = new MockProduct();
+createShipment(product)
+
+如果createShipment参数有很多实例化对象的参数？
+并且参数间也有依赖关系
+
+Inversion of Control IOC  控制反转
+
+注入器：constructor(
+	private productService:ProductService //token一样  由useclass	实例化
+	){}
+自动找一个ProductService实例，把这个实例注入到productService的对象中去
+找token是productService的provider,然后用useClass的值New一个实例
+
+提供器：
+       providers:[{
+      	provide:ProductService,//提供器token
+      	useClass:ProductService
+      }] => provide和useClass的值一样时简写成 providers:[ProductService]
+
+      providers:[{
+      	provide:ProductService,//提供器token
+      	useClass:AnotherProductService
+      }]
+
+      providers:[{
+      	provide:ProductService,//提供器token
+      	useFactory:()=>{}
+      }]
+
+ng g component product1
+ng g service shared/product    服务在多个组件间共享
+
+提供器的作用域 :module and component
+providers可声明在module中也可以声明在component中
+
+当一个提供器声明在一个模块，对它所含的所有组件可见，
+这些组件可以直接引用提供器的token所对应的服务，并且可以不声明providers
+如：
+@Component({
+  selector: 'app-product1',
+  templateUrl: './product1.component.html',
+})
+export class Product1Component implements OnInit {
+  public  product:Product;
+  constructor(private productService:ProductService){}
+  ngOnInit() {
+  }
+}
+
+dependInject依赖注入DEMO
+router路由DEMO
+
+
+当一个提供器providers声明在一个组件中，对该组件及其子组件可见，其它组件不可以注入
+@Component({
+  //相同的token provide,不同的useClass
+  providers:[{
+    provide:ProductService,useClass:AnotherProductService
+}]
+})
+当组件和模块中的提供器有相同的token，组件中的覆盖模块中的提供器
+
+优先声明在模块中
+
+@Injectable()装饰器，代表当前服务productService可能注入其它服务
+只有声明了@Injectable()，才能注入其它服务 最后服务全加上@Injectable()装饰器
+注入的服务也必须在模块中的提供器providers中声明
+
+组件没有@Injectable()装饰器，可以注入模块中的providers
+是因为有一个@component装饰器，而@component装饰器是@Injectable()装饰器的子类
+
+productService 可不可以被其它服务注入，是由模块中的providers决定的
+
+useFactory 单例对象，只调用一次，每次服务都调用
+
+用工厂方法声明特定的值来声明提供器providers
+
+父组件 app.component.ts
+应用级注入器 app.module.ts
+
+注入器的层次关系及行为
+首先注入应用级的注入器如：imports: [
+    BrowserModule,
+    FormsModule,
+    HttpModule
+  ],AppModule
+
+其次 主组件注入器
+
+其次  子组件注入器
+
+ng中只有一种注入方式，构造函数中注入
+//手动注入服务
+  private productService:ProductService;
+  constructor(private injector:Injector){
+    this.productService = injector.get(ProductService)
+
+  }
+
+**********
+logger.log();调用失败
+client?93b6:101 /Users/jch/Sites/dependInject/src/app/shared/another-product.service.ts (6,14): Class 'AnotherProductService' incorrectly implements interface 'ProductService'.
+  Property 'logger' is missing in type 'AnotherProductService'.onSocketMsg.errors @ client?93b6:101sock.onmessage @ socket.js:37EventTarget.dispatchEvent @ eventtarget.js:51(anonymous function) @ main.js:274SockJS._transportMessage @ main.js:272EventEmitter.emit @ emitter.js:50WebSocketTransport.ws.onmessage @ websocket.js:35wrapFn @ zone.js:1242ZoneDelegate.invokeTask @ zone.js:367Zone.runTask @ zone.js:166ZoneTask.invoke @ zone.js:420
+
+声明public logger:loggerService
+用Impelments关键字的话，实现类的构造函数也要声明public logger
+**********
+----------------------------
+增加商品详细信息和评论
+
+1编写ProductService,包含3个方法：getProducts  getProduct(id) getCommentsForProduct(id)
+ng g service shared/product
+列表和详情页都会用到ProductService
+2修改路由配置，在从商品列表进详情，参数由商品名更改为商品ID
+3.注入ProductService服务
