@@ -23,20 +23,20 @@ import {AnotherProductService} from "./shared/another-product.service";
   ],
   //providers: [ProductService,LoggerService],
   providers: [{provide:ProductService,
-    useFactory:(logger:LoggerService,isDev)=>{//参数和deps对应关系
+    useFactory:(logger:LoggerService,appConfig)=>{//参数和deps对应关系
       //let dev = Math.random() > 0.5;
-      if(isDev){
+      if(appConfig.isDev){
         return new ProductService(logger);
       }else{
         return new AnotherProductService(logger)
       }
     },
-    deps:[LoggerService,'IS_DEV']//依赖项token，直接传到useFactory参数中
+    deps:[LoggerService,'app_config']//依赖项token，直接传到useFactory参数中
   },LoggerService,
     //实现变量像服务一样被依赖注入
     {
-      provide:'IS_DEV',//字符串的token
-      useValue:true
+      provide:'app_config',//对象类型的token
+      useValue:{isDev:true}
     }],
   bootstrap: [AppComponent]
 })
