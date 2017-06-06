@@ -22,18 +22,22 @@ import {AnotherProductService} from "./shared/another-product.service";
     HttpModule
   ],
   //providers: [ProductService,LoggerService],
-  providers: [{
-    provide:ProductService,
-    useFactory:()=>{
-      let log = new LoggerService();
-      let dev = Math.random() > 0.5;
-      if(dev){
-        return new ProductService(log);
+  providers: [{provide:ProductService,
+    useFactory:(logger:LoggerService,isDev)=>{//参数和deps对应关系
+      //let dev = Math.random() > 0.5;
+      if(isDev){
+        return new ProductService(logger);
       }else{
-        return new AnotherProductService(log)
+        return new AnotherProductService(logger)
       }
-    }
-  }],
+    },
+    deps:[LoggerService,'IS_DEV']//依赖项token，直接传到useFactory参数中
+  },LoggerService,
+    //实现变量像服务一样被依赖注入
+    {
+      provide:'IS_DEV',//字符串的token
+      useValue:true
+    }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
