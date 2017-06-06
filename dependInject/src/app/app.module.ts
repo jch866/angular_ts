@@ -8,6 +8,7 @@ import { Product1Component } from './product1/product1.component';
 import {ProductService} from "./shared/product.service";
 import { Product2Component } from './product2/product2.component';
 import {LoggerService} from "./shared/logger.service";
+import {AnotherProductService} from "./shared/another-product.service";
 
 @NgModule({
   declarations: [
@@ -20,7 +21,19 @@ import {LoggerService} from "./shared/logger.service";
     FormsModule,
     HttpModule
   ],
-  providers: [ProductService,LoggerService],
+  //providers: [ProductService,LoggerService],
+  providers: [{
+    provide:ProductService,
+    useFactory:()=>{
+      let log = new LoggerService();
+      let dev = Math.random() > 0.5;
+      if(dev){
+        return new ProductService(log);
+      }else{
+        return new AnotherProductService(log)
+      }
+    }
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
