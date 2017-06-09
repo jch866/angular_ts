@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule,ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { Routes, RouterModule } from '@angular/router';
 
@@ -14,6 +14,7 @@ import { StarsComponent } from './stars/stars.component';
 import { ProductDetailComponent } from './product-detail/product-detail.component';
 import { HomeComponent } from './home/home.component';
 import {ProductService} from "./shared/product.service";
+import { FilterPipe } from './pipe/filter.pipe';
 
 const routeConfig:Routes = [
   {path:'',component:HomeComponent},
@@ -22,13 +23,14 @@ const routeConfig:Routes = [
 
 @NgModule({
   declarations: [ //declarations只能声明组件，指令，管道
-    AppComponent, NavbarComponent, FooterComponent, SearchComponent, CarouselComponent, ProductComponent, StarsComponent, ProductDetailComponent, HomeComponent
+    AppComponent, NavbarComponent, FooterComponent, SearchComponent, CarouselComponent, ProductComponent, StarsComponent, ProductDetailComponent, HomeComponent, FilterPipe
   ],
   imports: [//其它依赖MODULE
     BrowserModule,
     FormsModule,
     HttpModule,
-    RouterModule.forRoot(routeConfig)
+    RouterModule.forRoot(routeConfig),
+    ReactiveFormsModule  //响应式
   ],
   providers: [ProductService],//模块中提供什么服务,只能声明服务
   bootstrap: [AppComponent] //声明模块中主组件

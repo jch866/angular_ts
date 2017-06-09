@@ -318,3 +318,247 @@ ng g service shared/product
 列表和详情页都会用到ProductService
 2修改路由配置，在从商品列表进详情，参数由商品名更改为商品ID
 3.注入ProductService服务
+
+
+----------------------------
+??如何调试angular
+
+数据绑定，响应式编程 ，管道
+**单向绑定：
+插值表达式{{}}:
+<h1>{{productTitel}}</h1>
+属性[]:
+<img [src]='imgUrl' alt="" />
+
+1.<img src = '{{imgUrl}}' alt="">  2.<img [src]='imgUrl' alt=""> 
+插值和属性表达式两个是一样的 
+
+方法 ():
+<button (click)='toProductDetail()'></button>
+
+事件绑定：
+<input type="text" (input)='onInputEvent($event)' />
+onInputEvent组件方法名
+$event浏览器事件对象 
+
+<input type="text" (input)='saved=true' />
+
+html和dom属性的区别:
+console.log(event.target.value);//Dom属性 变化 
+console.log(event.target.getAttribute('value'));//html属性 初始化时是什么就是什么 不变化  
+html属性指定初始值    DOM属性表示当前值 
+例外 ：
+<button disabled='false'>按钮禁用</button>  
+只有动态改变disabled Dom属性值 才能让键钮恢复 如下代码
+<button [disabled]='isFalse'>按钮禁用</button>
+
+html和dom属性的关系
+1.少量html和dom属性 之间有着1:1的对应关系 如：id
+2.有些HTML属性 没有 对应的Dom属性  如：colspan
+3.有些Dom属性 没有 对应的HTML属性  如：textContent
+4.就算名字相同，HTML 和 DOM属性也不是同一个东西
+5.HTML属性 的值指定了初始值 Dom属性 的值表示当前值 
+HTML属性的值不能改变 Dom属性的值可以改变
+6.模板绑定是通过DOM属性和事件来工作的，而不是HTML属性
+
+HTML属性绑定
+1.基本的HTML属性绑定 : <td [attr.colspan]='tableColspan'>sth</td>
+2.css类绑定：
+    1- <div class="aa bb" [class]='someExpression'>sth</div>
+        [class]会代替，本身的class='aa bb'
+    2-<div [class.special]='isSpecial'>sth</div>
+    3-<div [ngClass]='{aa:isA,bb:isB}'>sth</div>
+3.样式绑定：
+    1-<button [style.color]='isSpecial'?'red':'green'>Red</button>
+      <button [style.font-size.em]='isSpecial'?3:1>Red</button> 针对单位不同的情况
+    2-<button [ngStyle]='{'font-style':this.isSave?'italic':'normal'}'>Red</button>
+      ngStyle和ngClass差不多
+
+优先用dom绑定，用html绑定是因为有些元素没有dom属性
+Can't bind to 'colspan' since it isn't a known property of 'td'.
+例如
+dom属性绑定
+<table>
+  <tr>
+    <td colspan={{1+1}}>angular1</td>
+  </tr>
+</table>
+改成html属性绑定
+<table>
+  <tr>
+    <td [attr.colsapn]='size'>angular2</td>
+  </tr>
+</table>
+
+
+<div [class]='divClass'>angular</div> 
+<div class ='a b' [class.c]='isBig'>angular</div>
+-------
+<div [ngClaa]='{a:false,b:true,c:false}'>angular</div>
+同下面的
+<div [ngClaa]='divClass'>angular</div>
+ts中:divClass:any = {
+  a:false,
+  b:true,
+  c:false
+}
+-------
+5.3 5.4 有两个绑定图(html和dom)
+
+**双向绑定：可选项
+<input [value]='name' (input)='onInput($event)'> {{name}}
+等同于 中装小-盒子里装香蕉
+[()]：<input [ngModel]='name' >{{name}}
+ngModel用来表单元素上
+ngModel默认事件input
+其它元素时，ngModel由angular底层判断
+
+**响应式编程 https://segmentfault.com/a/1190000009041192
+@angular/forms
+若使用 reactive forms，则导入 ReactiveFormsModule；
+若使用 template-driven 表单，则导入 FormsModule。
+imports    ReactiveFormsModule
+FormControl and FormGroup
+FormControl - 它是一个为单个表单控件提供支持的类，可用于跟踪控件的值和验证状态，此外还提供了一系列公共API。
+使用示例：
+ngOnInit() {
+  this.myControl = new FormControl('Semlinker');
+}
+FormGroup - 包含是一组 FormControl 实例，可用于跟踪 FormControl 组的值和验证状态，此外也提供了一系列公共API。
+使用示例：
+
+ngOnInit() {
+  this.myGroup = new FormGroup({
+    name: new FormControl('Semlinker'),
+    location: new FormControl('China, CN')
+  });
+}
+使用 [formGroup] 绑定我们创建的 myGroup 对象，除此之外还要使用 formControlName 指令，绑定我们创建的 FormControl 控件。此时的表单结构如下：
+FormGroup -> 'myGroup'
+    FormControl -> 'name'
+    FormControl -> 'location'
+-----
+import 'rxjs/Rx'; 
+private titleFilter:FormControl = new FormControl();
+ this.titleFilter.valueChanges
+      .debounceTime(500).subscribe(
+        value=>this.keyword = value
+        );
+------------------------------------------
+
+**管道
+{{birthday | date:'yyyy-MM-dd HH:mm:ss'}}
+{{string | uppercase}}
+圆周率{{pi | mumber:'2.1-4'}}//四舍五入 2位整数，1到4位小数
+圆周率{{pi | async}}异步管道
+
+自定义管理
+ng g pipe pipe/multiple
+和组件一样要声明   声明在declarations中
+
+@Pipe({name:'multiple'})
+{{pi | multiple}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
