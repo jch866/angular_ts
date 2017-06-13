@@ -1,0 +1,18 @@
+<!-- <div class='child'>
+	<h2>我是子组件</h2>
+	<div>问候：{{greeting}}</div>
+	<div>姓名：{{user.name}}</div>
+	<div>消息： <input type="text" [(ngModel)]='message'></div>
+
+</div> -->
+
+<!-- <div>
+	child works
+</div> -->
+<div class="wrapper">
+	<h2>我是子组件</h2>
+	<ng-content select = '.header'></ng-content>
+  <div>这个DIV定义在子组件中</div>
+	<!-- 投影点 -->
+	<ng-content  select = '.footer'></ng-content>
+</div>

@@ -458,50 +458,164 @@ ng g pipe pipe/multiple
 
 @Pipe({name:'multiple'})
 {{pi | multiple}}
+"
+
+-------------------------------------------------------
+组件间通讯 散松藕合
+组件输入和输出属性
+使用中间人模式传递数据，在没有父子关系间传递数据
+
+组件黑盒模型
+
+输入属性，父影响子，但子不影响父
+@input()stockCode:string;  @input()amount:number; 
+<input type='text' [(ngModel)]='stock'/>
+<app-order [stockCode]='stock' [amount]='100'></app-order>
+
+
+数据传递两种方法 ：
+1@input,
+2路由通过构造函数传数据
+
+输出属性@output()注解
+rxjs    => EventEmitter
+import { EventEmitter } from '@angular/core';
+
+@output()
+lastPrice:EventEmitter<PriceQuote> = new EventEmitter();
+
+this.lastPrice.emit(PriceQuote)  emit一个事件出来，外面接收
+发送出来的PriceQuote ,父组件也要声明一个这样类型的变量来收
+
+<app-child (A)='Ahandler($event)' ></app-child>
+A就是发射出来的事件
+
+@output('B')
+<app-child (B)='Ahandler($event)' ></app-child>
+
+
+Ahandler(event:PriceQuote){}
+
+export class PriceQuote{
+  constructor( public stockCode:string,
+    public lastPrice:number){  }
+}
+
+针对组件不存在父子关系的组件时：中间人模式
+中间人类似把两个不存在父子关系的组件(是兄弟关系)，把在一个父层级里图上看出是你包含关系
+如果这两个不存在父子关系的组件不是兄弟关系，应该用服务注入的方式
+
+设计哪些可重用的组件，哪些组件或者服务做哪些组件的中间人
+组件的输入输出是什么 ，组件之间如何通讯
+
+组件的生命周期   共有9个勾子
+组件初始化 顺序
+1 constructor
+2 ngOnChanges
+父组件初始化或者修改子组件的输入参数时调用
+可变(字符串)或者不可变对象 (对象)
+内存指向可变不可变
+
+3 ngOnInit
+4 ngDoCheck
+5 ngAtterContentInit
+6 ngAfterContentChecked
+7 ngAtterViewInit
+8 ngAfterViewChecked
+其中，变化检测2468  (changes,check,checked,checked4C)调用多次，其它只调用一次 所以实现带check钩子时一定要轻量
+组件销毁：ngOnDestroy  路由切换的时候调用
+
+生命周期钩子演示顺序：
+1 name属性在constructor里的值是：
+2 name属性在ngOnChanges里的值是：app
+3 ngOnInit   初始化逻辑
+4 ngDoCheck   变更检测
+5 ngAfterContentInit 内容投影
+6 ngAfterContentChecked
+7 ngAfterViewInit   组件模板视图初始化，检查
+8 ngAfterViewChecked
+9 ngDoCheck
+10 ngAfterContentChecked
+11 ngAfterViewChecked
+
+字符串是不可变的，
+var A='a'; 在内存中创建一个值为a的字符串
+ A= 'b' 在内存中创建一个值为b的字符串  并不改变内存中的a
+ 但对于变量A来说，它是改变的，指向了一个新的地址
+
+
+对象是可变的
+var user= {name:'tom'} 
+user.name = "jay"  //改变 name值
+但user对象所指向的地址没变
+
+变更检测机制 zone.js 来实现
+变更检测机制不会改变组件属性本身的值 ，只会把改变的值反应到模板上
+
+主组件为应用的组件树
+每个组件都会生成一个变更检测器
+
+变更检测机制
+1.default策略
+  牵一发而动全身，会检测全部组件树
+
+2.onPush策略
+只有当输入属性变化时才检测其子组件
+
+ngDoCheck会响应原生JS事件而被频繁调用如，mousemove  click等
+其它带check的勾子都会被调用
+
+父组件调用子组件的方法
+
+1通过viewchild装饰器，调用了子组件的方法 
+ @ViewChild('child1') // 装饰器获得子组件的引用
+  child1:ChildComponent;
+
+  ngOnInit():void{
+    this.child1.greet('tom');
+  }
+2.在父组件的模板中调用子组件的方法
+
+ 1，ngAtterViewInit  ngAfterViewChecked这都是组件视图组装完毕后才调用的,
+ 2，当子组件的 ngAtterViewInit  ngAfterViewChecked调用完毕后，父组件的这两个方法才能被调用
+3，不要在ngAtterViewInit  ngAfterViewChecked方法中改变组件视图中绑定的东西，如果想改变，
+写在定时器中
 
 
 
+投影 动态改变一块片段的内容
+将 父组件的内容投影到子组件中去
+ngAtterContentInit
+ngAfterContentChecked
+在被投影组装的内容组装完后调用
+投影点：<ng-content></ng-content>不能使用子组件的属性
 
+可以有多个<ng-content></ng-content>
+<ng-content select = '.header'></ng-content>
+  <ng-content  select = '.footer'></ng-content>
+父和子的样式都是wrapper但不会覆盖
 
+<div [innerHtml] = 'divContent'></div>  innerHtml基于浏览器
+ng-content 会有更好的一致性 
 
+视图组装顺序
+投影内容 -> 子组件 -> 父组件
+ngAfterViewChecked(){
+    console.log('父组件视图变更检测完毕')
+    //this.message = 'hello' angular禁止视图已经被组装好之后再去更新
+  }
+ngAfterContentInit(){
+    console.log('父组件投影内容初始化完毕');
+    //this.message = 'hello' angular不会报错，没有组装完成，只是投影内容完成
+}
 
+输入rating;输出必须叫rating+Change 模板才能用[(rating)]='newRating'这种方法
+ 如果不叫ratingChange这个名字比如叫aEvent ，模板中要这样写[rating]='newRating'  (aEvent)='ChangeNewRating()';
+通过ChangeNewRating方法来改变newRating,来实现双向绑定
 
+用数据控制界面，而不是用DOM
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+liftCycle生命周期钩子，结合输入输出属性增加商品评论，完善星级评价
 
 
 

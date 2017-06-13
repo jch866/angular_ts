@@ -1,4 +1,4 @@
-div.thumbnail
+<div class="thumbnail">
 <div>
   <img src="http://placehold.it/820x230" alt="">
   <div>
@@ -13,8 +13,22 @@ div.thumbnail
     </p>
   </div>
 </div>
-
+</div>
 <div class="well">
+  <div >
+      <button  class="btn btn-success" (click)='isCommentHidden= !isCommentHidden'>发表评论</button>
+  </div>
+  <div [hidden]='isCommentHidden'>
+  <div>
+    <app-stars [readonly]="false" [(rating)]='newRating'></app-stars>
+  </div>
+  <div>
+    <textarea name="" id="" cols="30" rows="3" [(ngModel)] = 'newComment'></textarea>
+  </div>
+  <div>
+    <button class='btn' (click)='addComment()'>提交</button>
+  </div>
+  </div>
   <div class="row" *ngFor="let comment of comments">
     <hr>
     <div class="col-md-12">
